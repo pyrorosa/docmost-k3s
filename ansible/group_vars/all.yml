@@ -1,0 +1,3 @@
+k3s_version: "v1.33.1+k3s1"
+k3s_token: "06b1088abf9ec8f780e9f6d3910804137936907a886ef4821a717cd30b7bbd26"
+k3s_server_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"

@@ -1,0 +1,51 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install common dependencies
+  apt:
+    name:
+      - curl
+      - wget
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - software-properties-common
+      - python3-apt
+    state: present
+
+- name: Set Helm version
+  set_fact:
+    helm_version: "v3.15.0"
+
+- name: Download Helm tarball
+  get_url:
+    url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    mode: '0644'
+
+- name: Extract Helm binary
+  unarchive:
+    src: "/tmp/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+    list_files: yes
+  register: helm_extract
+
+- name: Install Helm binary
+  copy:
+    src: "/tmp/linux-amd64/helm"
+    dest: /usr/local/bin/helm
+    mode: '0755'
+    remote_src: yes
+
+- name: Verify Helm installation
+  command: helm version --short
+  register: helm_version_check
+  changed_when: false
+
+- name: Show Helm version
+  debug:
+    msg: "Helm installed: {{ helm_version_check.stdout }}"

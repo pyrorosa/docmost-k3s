@@ -1,0 +1,11 @@
+---
+- name: Install K3s server
+  shell: |
+    curl -sfL https://get.k3s.io | \
+    INSTALL_K3S_VERSION={{ k3s_version }} \
+    K3S_TOKEN={{ k3s_token }} \
+    sh -s - \
+      --write-kubeconfig-mode 644 \
+      --node-ip {{ k3s_server_ip }}
+  args:
+    creates: /usr/local/bin/k3s
