@@ -1,0 +1,9 @@
+---
+- name: Setup K3s Runner
+  hosts: runners
+  become: true
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - k3s-runner

@@ -1,0 +1,45 @@
+---
+- name: Install kubectl
+  shell: curl -fsSL -o /usr/local/bin/kubectl https://dl.k8s.io/release/v1.33.1/bin/linux/amd64/kubectl && chmod +x /usr/local/bin/kubectl
+  args:
+    creates: /usr/local/bin/kubectl
+  changed_when: true
+
+- name: Install Helm
+  shell: curl -fsSL https://get.helm.sh/helm-v3.15.0-linux-amd64.tar.gz | tar xz -C /tmp && mv /tmp/linux-amd64/helm /usr/local/bin/helm && chmod +x /usr/local/bin/helm && rm -rf /tmp/linux-amd64
+  args:
+    creates: /usr/local/bin/helm
+  changed_when: true
+
+- name: Setup Actions Runner directory
+  file:
+    path: /home/vagrant/actions-runner
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: '0755'
+
+- name: Download Actions Runner
+  unarchive:
+    src: "https://github.com/actions/runner/releases/download/v2.322.0/actions-runner-linux-x64-2.322.0.tar.gz"
+    dest: /home/vagrant/actions-runner
+    remote_src: yes
+    owner: vagrant
+    group: vagrant
+
+- name: Create .kube directory
+  file:
+    path: /home/vagrant/.kube
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: '0700'
+
+- name: Create empty kubeconfig
+  copy:
+    content: ""
+    dest: /home/vagrant/.kube/config
+    owner: vagrant
+    group: vagrant
+    mode: '0600'
+    force: false
