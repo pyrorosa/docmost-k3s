@@ -1,0 +1,51 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.nodeExporter.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "docmost.name" . }}-node-exporter
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node-exporter
+spec:
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: node-exporter
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: node-exporter
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: node-exporter
+        image: "{{ .Values.monitoring.nodeExporter.image.repository }}:{{ .Values.monitoring.nodeExporter.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: 9100
+          name: metrics
+        args:
+        - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.monitoring.nodeExporter.resources | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

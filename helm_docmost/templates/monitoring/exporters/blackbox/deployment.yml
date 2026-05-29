@@ -1,0 +1,56 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.blackboxExporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "docmost.name" . }}-blackbox-exporter
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: blackbox-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: blackbox-exporter
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: blackbox-exporter
+        image: "{{ .Values.monitoring.blackboxExporter.image.repository }}:{{ .Values.monitoring.blackboxExporter.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: 9115
+          name: http
+        volumeMounts:
+        - name: blackbox-config
+          mountPath: /etc/blackbox/blackbox.yml
+          subPath: blackbox.yml
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.monitoring.blackboxExporter.resources | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      volumes:
+      - name: blackbox-config
+        configMap:
+          name: {{ include "docmost.name" . }}-blackbox-config
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

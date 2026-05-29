@@ -1,0 +1,65 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.loki.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "docmost.name" . }}-loki
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: loki
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: loki
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+      - name: loki
+        image: "{{ .Values.monitoring.loki.image.repository }}:{{ .Values.monitoring.loki.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        ports:
+        - containerPort: 3100
+          name: http
+        args:
+        - -config.file=/etc/loki/loki-config.yaml
+        volumeMounts:
+        - name: loki-config
+          mountPath: /etc/loki/loki-config.yaml
+          subPath: loki-config.yaml
+          readOnly: true
+        - name: loki-data
+          mountPath: /loki
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.monitoring.loki.resources | nindent 10 }}
+      volumes:
+      - name: loki-config
+        configMap:
+          name: {{ include "docmost.name" . }}-loki-config
+      - name: loki-data
+        persistentVolumeClaim:
+          claimName: {{ include "docmost.name" . }}-loki-data
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

@@ -1,0 +1,14 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "docmost.name" . }}-prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "docmost.name" . }}-prometheus
+subjects:
+- kind: ServiceAccount
+  name: {{ include "docmost.name" . }}-prometheus
+  namespace: {{ .Values.global.namespace }}
+{{- end }}

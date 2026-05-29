@@ -1,0 +1,89 @@
+{{- if .Values.docmost.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "docmost.name" . }}-docmost
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docmost
+spec:
+  replicas: {{ .Values.docmost.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: docmost
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: docmost
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: docmost
+        image: "{{ .Values.docmost.image.repository }}:{{ .Values.docmost.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://docmost:{{ .Values.secrets.app.dbPassword }}@docmost-postgres:5432/docmost"
+        - name: REDIS_URL
+          value: {{ .Values.docmost.config.redisUrl | quote }}
+        - name: APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "docmost.name" . }}-app-secrets
+              key: APP_SECRET
+        envFrom:
+        - secretRef:
+            name: {{ include "docmost.name" . }}-app-secrets
+            optional: true
+        volumeMounts:
+        - name: docmost-data
+          mountPath: /app/data/storage
+        - name: tmp
+          mountPath: /tmp
+        - name: client-dist
+          mountPath: /app/apps/client/dist
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.docmost.probes.liveness.path }}
+            port: 3000
+          initialDelaySeconds: {{ .Values.docmost.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.docmost.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.docmost.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.docmost.probes.liveness.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.docmost.probes.readiness.path }}
+            port: 3000
+          initialDelaySeconds: {{ .Values.docmost.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.docmost.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.docmost.probes.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.docmost.probes.readiness.failureThreshold }}
+        resources:
+          {{- toYaml .Values.docmost.resources | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      volumes:
+      - name: docmost-data
+        persistentVolumeClaim:
+          claimName: {{ include "docmost.name" . }}-docmost-data
+      - name: tmp
+        emptyDir: {}
+      - name: client-dist
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

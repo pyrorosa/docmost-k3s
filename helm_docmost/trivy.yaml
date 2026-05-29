@@ -1,0 +1,14 @@
+misconfig:
+  ignore:
+    - id: AVD-KSV-0009
+      paths:
+        - "templates/monitoring/exporters/cadvisor/daemonset.yml"
+    - id: AVD-KSV-0010
+      paths:
+        - "templates/monitoring/exporters/cadvisor/daemonset.yml"
+    - id: AVD-KSV-0024
+      paths:
+        - "templates/monitoring/exporters/cadvisor/daemonset.yml"
+    - id: AVD-KSV-0121
+      paths:
+        - "templates/monitoring/exporters/cadvisor/daemonset.yml"

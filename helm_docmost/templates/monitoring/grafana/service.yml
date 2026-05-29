@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "docmost.name" . }}-grafana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "docmost.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: web
+    nodePort: {{ .Values.monitoring.grafana.service.nodePort | default 30300 }}
+{{- end }}

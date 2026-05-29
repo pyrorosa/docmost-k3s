@@ -1,0 +1,18 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.blackboxExporter.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "docmost.name" . }}-blackbox-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  blackbox.yml: |
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_status_codes: [200]
+      tcp_connect:
+        prober: tcp
+        timeout: 5s
+{{- end }}

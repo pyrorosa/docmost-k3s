@@ -1,0 +1,89 @@
+{{- if .Values.docmost.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-docmost-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.docmost.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.docmost.storage.size }}
+{{- end }}
+---
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-redis-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.redis.storage.storageClass | default .Values.postgres.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.storage.size | default "5Gi" }}
+{{- end }}
+---
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-prometheus-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.monitoring.prometheus.storage.storageClass | default .Values.postgres.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.prometheus.storage.size | default "5Gi" }}
+{{- end }}
+---
+{{- if and .Values.monitoring.enabled .Values.monitoring.loki.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-loki-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.monitoring.loki.storage.storageClass | default .Values.postgres.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.loki.storage.size | default "10Gi" }}
+{{- end }}
+---
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-grafana-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.monitoring.grafana.storage.storageClass | default .Values.postgres.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.grafana.storage.size | default "5Gi" }}
+{{- end }}
+---
+{{- if and .Values.monitoring.enabled .Values.monitoring.alertmanager.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "docmost.name" . }}-alertmanager-data
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.monitoring.alertmanager.storage.storageClass | default .Values.postgres.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.alertmanager.storage.size | default "2Gi" }}
+{{- end }}

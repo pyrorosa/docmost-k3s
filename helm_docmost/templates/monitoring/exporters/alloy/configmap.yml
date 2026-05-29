@@ -1,0 +1,66 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.alloy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "docmost.name" . }}-alloy-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alloy
+data:
+  config.alloy: |
+    logging {
+      level  = "info"
+      format = "logfmt"
+    }
+
+    prometheus.remote_write "default" {
+      endpoint {
+        url = "http://{{ include "docmost.name" . }}-prometheus:9090/api/v1/write"
+      }
+    }
+
+    local.file_match "container_logs" {
+      path_targets = [{
+        __path__ = "/var/log/containers/*.log",
+      }]
+    }
+
+    loki.source.file "containers" {
+      targets    = local.file_match.container_logs.targets
+      forward_to = [loki.process.default.receiver]
+    }
+
+    loki.process "default" {
+      stage.logfmt {
+        mapping = {
+          "level" = "",
+          "msg"   = "",
+          "ts"    = "",
+        }
+      }
+      forward_to = [loki.write.default.receiver]
+    }
+
+    loki.write "default" {
+      endpoint {
+        url = "http://{{ include "docmost.name" . }}-loki:3100/loki/api/v1/push"
+      }
+    }
+
+    prometheus.scrape "default" {
+      targets = [
+        {"__address__" = "{{ include "docmost.name" . }}-prometheus:9090"},
+        {"__address__" = "{{ include "docmost.name" . }}-grafana:3000"},
+        {"__address__" = "{{ include "docmost.name" . }}-alertmanager:9093"},
+        {"__address__" = "{{ include "docmost.name" . }}-node-exporter:9100"},
+        {"__address__" = "{{ include "docmost.name" . }}-postgres-exporter:9187"},
+        {"__address__" = "{{ include "docmost.name" . }}-redis-exporter:9121"},
+        {"__address__" = "{{ include "docmost.name" . }}-nginx-exporter:9113"},
+        {"__address__" = "{{ include "docmost.name" . }}-blackbox-exporter:9115"},
+        {"__address__" = "{{ include "docmost.name" . }}-kube-state-metrics:8080"},
+      ]
+      forward_to = [prometheus.remote_write.default.receiver]
+      scrape_interval = "15s"
+    }
+{{- end }}

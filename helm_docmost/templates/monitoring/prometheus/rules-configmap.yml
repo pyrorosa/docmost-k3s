@@ -1,0 +1,96 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "docmost.name" . }}-prometheus-rules
+  namespace: {{ .Values.global.namespace }}
+data:
+  infrastructure-alerts.yml: |
+    groups:
+    - name: infrastructure
+      rules:
+      - alert: ContainerDown
+        expr: up{job=~"cadvisor|postgres-exporter|redis-exporter|nginx-exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          title: "🔴 Container DOWN"
+          summary: "{{`{{ $labels.job }}`}} недоступен"
+          description: |
+            📦 Service: {{`{{ $labels.job }}`}}
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            ⏱ Down: > 30s
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "🟠 High CPU Usage"
+          summary: "CPU usage > 90%"
+          description: |
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            🔥 CPU Load: {{`{{ printf "%.1f" $value }}`}}%
+            ⏱ Duration: 5m
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "🟠 High Memory Usage"
+          summary: "RAM usage > 90%"
+          description: |
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            🧠 Memory Usage: {{`{{ printf "%.1f" $value }}`}}%
+            ⏱ Duration: 5m
+      - alert: DiskSpaceLow
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/", fstype!=""} * 100) / node_filesystem_size_bytes{mountpoint="/", fstype!=""}) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          title: "🟠 Disk Space Low"
+          summary: "Disk usage > 85%"
+          description: |
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            💾 Mount: /
+            📈 Usage: {{`{{ printf "%.1f" $value }}`}}%
+            ⏱ Duration: 10m
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          title: "🔴 PostgreSQL DOWN"
+          summary: "PostgreSQL не отвечает"
+          description: |
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            🗄 Database: PostgreSQL
+            ⏱ Down: > 1m
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          title: "🔴 Redis DOWN"
+          summary: "Redis не отвечает"
+          description: |
+            🖥 Host: {{`{{ $labels.instance }}`}}
+            ⚡ Service: Redis
+            ⏱ Down: > 1m
+      - alert: HttpProbeFailed
+        expr: probe_success{job="blackbox-http"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          title: "🔴 HTTP Probe Failed"
+          summary: "Endpoint недоступен"
+          description: |
+            🌐 Endpoint: {{`{{ $labels.instance }}`}}
+            ❌ HTTP probe failed
+{{- end }}

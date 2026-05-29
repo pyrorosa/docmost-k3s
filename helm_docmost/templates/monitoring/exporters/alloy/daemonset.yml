@@ -1,0 +1,72 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.alloy.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "docmost.name" . }}-alloy
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alloy
+spec:
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: alloy
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: alloy
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+      - name: alloy
+        image: "{{ .Values.monitoring.alloy.image.repository }}:{{ .Values.monitoring.alloy.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: 12345
+          name: http
+        args:
+        - run
+        - --server.http.listen-addr=0.0.0.0:12345
+        - --storage.path=/tmp/alloy
+        - /etc/alloy/config.alloy
+        volumeMounts:
+        - name: alloy-config
+          mountPath: /etc/alloy/config.alloy
+          subPath: config.alloy
+          readOnly: true
+        - name: var-log
+          mountPath: /var/log
+          readOnly: true
+        - name: pods-log
+          mountPath: /var/log/pods
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          {{- toYaml .Values.monitoring.alloy.resources | nindent 10 }}
+        securityContext:
+          privileged: true
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: alloy-config
+        configMap:
+          name: {{ include "docmost.name" . }}-alloy-config
+      - name: var-log
+        hostPath:
+          path: /var/log
+      - name: pods-log
+        hostPath:
+          path: /var/log/pods
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

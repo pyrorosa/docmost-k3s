@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "docmost.name" . }}-prometheus
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "docmost.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: prometheus
+  type: NodePort
+  ports:
+  - port: 9090
+    targetPort: 9090
+    name: web
+    nodePort: {{ .Values.monitoring.prometheus.service.nodePort | default 30900 }}
+{{- end }}

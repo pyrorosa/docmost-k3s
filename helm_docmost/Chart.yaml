@@ -1,0 +1,12 @@
+apiVersion: v2
+name: docmost
+description: Docmost application stack with monitoring
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - docmost
+  - wiki
+  - monitoring
+maintainers:
+  - name: admin

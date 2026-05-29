@@ -1,0 +1,17 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.nginxExporter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "docmost.name" . }}-nginx-exporter
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "docmost.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx-exporter
+  ports:
+  - name: metrics
+    port: 9113
+    targetPort: 9113
+{{- end }}

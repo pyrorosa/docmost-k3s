@@ -1,0 +1,85 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.cadvisor.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "docmost.name" . }}-cadvisor
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cadvisor
+spec:
+  selector:
+    matchLabels:
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: cadvisor
+  template:
+    metadata:
+      labels:
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: cadvisor
+    spec:
+      automountServiceAccountToken: false
+      hostNetwork: true
+      hostPID: true
+      securityContext:
+        runAsNonRoot: false
+      containers:
+      - name: cadvisor
+        image: "{{ .Values.monitoring.cadvisor.image.repository }}:{{ .Values.monitoring.cadvisor.image.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: 8080
+          hostPort: 8080
+          name: http
+        args:
+        - --housekeeping_interval=30s
+        - --max_housekeeping_interval=60s
+        - --event_storage_event_limit=default=0
+        - --event_storage_age_limit=default=0
+        - --prometheus_endpoint=/metrics
+        - --port=8080
+        volumeMounts:
+        - name: rootfs
+          mountPath: /rootfs
+          readOnly: true
+        - name: var-run
+          mountPath: /var/run
+          readOnly: true
+        - name: sys
+          mountPath: /sys
+          readOnly: true
+        - name: docker
+          mountPath: /var/lib/docker
+          readOnly: true
+        - name: disk
+          mountPath: /dev/disk
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.monitoring.cadvisor.resources | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      volumes:
+      - name: rootfs
+        hostPath:
+          path: /
+      - name: var-run
+        hostPath:
+          path: /var/run
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: docker
+        hostPath:
+          path: /var/lib/docker
+      - name: disk
+        hostPath:
+          path: /dev/disk
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+{{- end }}

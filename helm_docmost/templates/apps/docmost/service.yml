@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost-docmost
+  namespace: {{ .Values.global.namespace }}
+spec:
+  selector:
+    app.kubernetes.io/component: docmost
+    app.kubernetes.io/name: docmost
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000

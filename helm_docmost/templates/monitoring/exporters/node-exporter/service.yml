@@ -1,0 +1,17 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.nodeExporter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "docmost.name" . }}-node-exporter
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "docmost.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: node-exporter
+  ports:
+  - name: metrics
+    port: 9100
+    targetPort: 9100
+{{- end }}
