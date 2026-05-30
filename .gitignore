@@ -21,6 +21,6 @@ Thumbs.db
 stack/docmost/monitoring/alertmanager/alertmanager.yml
 k3s_docmost/secrets
 k3s_docmost/monitoring/alertmanager-config-secret.yml
-helm_docmost/values.yaml
+#helm_docmost/values.yaml
 .env
 .vagrant

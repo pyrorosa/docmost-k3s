@@ -1,0 +1,407 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: k3s-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CHART_PATH: helm_docmost
+  RELEASE_NAME: docmost
+  NAMESPACE: docmost
+  RENDERED_MANIFEST: rendered-manifests.yaml
+  SECRET_VALUES_FILE: /tmp/docmost-secrets.generated.yaml
+  HELM_TIMEOUT: 20m
+  KUBECONFORM_IMAGE: ghcr.io/yannh/kubeconform:v0.6.7
+
+jobs:
+  lint:
+    name: Lint & Render
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install yamllint
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip
+          python3 -m pip install yamllint
+
+      - name: Verify chart structure
+        run: |
+          set -euo pipefail
+
+          test -f "$CHART_PATH/Chart.yaml"
+          test -f "$CHART_PATH/values.yaml"
+
+          echo "Chart files:"
+          find "$CHART_PATH" -maxdepth 4 -type f | sort
+
+      - name: YAML lint (real YAML only, not Helm templates)
+        run: |
+          set -euo pipefail
+
+          mapfile -t YAML_FILES < <(
+            find "$CHART_PATH" -type f \( -name "*.yml" -o -name "*.yaml" \) \
+              | grep -v '/templates/' \
+              | sort || true
+          )
+
+          if [ "${#YAML_FILES[@]}" -eq 0 ]; then
+            echo "No real YAML files found for linting"
+            exit 1
+          fi
+
+          yamllint -d '
+          {
+            extends: default,
+            rules:
+            {
+              line-length: disable,
+              document-start: disable,
+              truthy: disable
+            }
+          }' "${YAML_FILES[@]}"
+
+      - name: Build Helm dependencies
+        run: |
+          set -euo pipefail
+          helm dependency build "$CHART_PATH" || true
+
+      - name: Helm lint
+        run: |
+          set -euo pipefail
+          helm lint "$CHART_PATH"
+
+      - name: Render chart
+        run: |
+          set -euo pipefail
+
+          helm template \
+            "$RELEASE_NAME" \
+            "$CHART_PATH" \
+            --namespace "$NAMESPACE" \
+            --values "$CHART_PATH/values.yaml" \
+            > "$RENDERED_MANIFEST"
+
+      - name: Validate rendered manifests with kubeconform
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            -v "$PWD:$PWD" \
+            -w "$PWD" \
+            "$KUBECONFORM_IMAGE" \
+            -strict \
+            -ignore-missing-schemas \
+            -summary \
+            "$RENDERED_MANIFEST"
+
+      - name: Upload rendered manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests-${{ github.run_number }}
+          path: ${{ env.RENDERED_MANIFEST }}
+          retention-days: 7
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Trivy config scan for chart
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: helm_docmost
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 0
+          trivy-config: helm_docmost/trivy.yaml
+
+      - name: Generate Trivy JSON report
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p security-reports
+
+          docker run --rm \
+            -v "$(pwd):/work" \
+            aquasecurity/trivy:latest \
+            config \
+            --format json \
+            --output /work/security-reports/trivy-chart.json \
+            /work/helm_docmost || true
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports-${{ github.run_number }}
+          path: security-reports/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to K3s
+    runs-on: self-hosted
+    timeout-minutes: 35
+    needs:
+      - lint
+      - security
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify kubectl access
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "$HOME/.kube/config" ]; then
+            echo "Kubeconfig not found at $HOME/.kube/config"
+            exit 1
+          fi
+
+          export KUBECONFIG="$HOME/.kube/config"
+
+          kubectl get nodes
+          kubectl get ns "$NAMESPACE" >/dev/null 2>&1 || kubectl create namespace "$NAMESPACE"
+
+      - name: Prepare secret overrides
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def q(value: str) -> str:
+              return json.dumps(value, ensure_ascii=False)
+
+          content = "\n".join([
+              "secrets:",
+              "  app:",
+              f"    dbPassword: {q(os.environ['DB_PASSWORD'])}",
+              f"    databaseUrl: {q(os.environ['DATABASE_URL'])}",
+              f"    appSecret: {q(os.environ['APP_SECRET'])}",
+              f"    telegramBotToken: {q(os.environ['TELEGRAM_BOT_TOKEN'])}",
+              f"    telegramChatId: {q(os.environ['TELEGRAM_CHAT_ID'])}",
+              f"    grafanaPassword: {q(os.environ['GRAFANA_PASSWORD'])}",
+              "",
+          ])
+
+          Path(os.environ["SECRET_VALUES_FILE"]).write_text(content, encoding="utf-8")
+          PY
+
+          chmod 600 "$SECRET_VALUES_FILE"
+
+      - name: Build Helm dependencies
+        run: |
+          set -euo pipefail
+          helm dependency build "$CHART_PATH" || true
+
+      - name: Render final manifests
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          helm template \
+            "$RELEASE_NAME" \
+            "$CHART_PATH" \
+            --namespace "$NAMESPACE" \
+            --values "$CHART_PATH/values.yaml" \
+            --values "$SECRET_VALUES_FILE" \
+            > /tmp/docmost-rendered.yaml
+
+      - name: Server-side dry run
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          kubectl apply \
+            --dry-run=server \
+            -f /tmp/docmost-rendered.yaml
+
+      - name: Clear stuck Helm locks
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          kubectl delete secret -n "$NAMESPACE" -l owner=helm,name="$RELEASE_NAME" 2>/dev/null || true
+          kubectl delete secret -n "$NAMESPACE" -l name="$RELEASE_NAME" 2>/dev/null | grep -v "No resources found" || true
+
+          sleep 2
+
+      - name: Deploy Helm release
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          helm upgrade \
+            --install \
+            "$RELEASE_NAME" \
+            "$CHART_PATH" \
+            --namespace "$NAMESPACE" \
+            --create-namespace \
+            --values "$CHART_PATH/values.yaml" \
+            --values "$SECRET_VALUES_FILE" \
+            --force \
+            --atomic \
+            --wait \
+            --timeout "$HELM_TIMEOUT"
+
+      - name: Wait for workload readiness
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          kubectl get pods -n "$NAMESPACE" -o wide
+          kubectl get svc -n "$NAMESPACE"
+          kubectl get ingress -n "$NAMESPACE" || true
+
+          kubectl wait \
+            --for=condition=Available \
+            deployment \
+            --all \
+            -n "$NAMESPACE" \
+            --timeout=10m || true
+
+      - name: Smoke test via port-forward
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          kubectl port-forward \
+            -n "$NAMESPACE" \
+            svc/docmost-nginx \
+            18080:80 \
+            >/tmp/docmost-port-forward.log 2>&1 &
+
+          PF_PID=$!
+          trap 'kill $PF_PID || true' EXIT
+
+          sleep 10
+
+          for i in 1 2 3; do
+            if curl -fsS --max-time 5 http://127.0.0.1:18080/api/health >/dev/null 2>&1; then
+              echo "Health check passed on attempt $i"
+              break
+            fi
+            echo "Health check failed, retry $i/3..."
+            sleep 3
+          done
+
+          curl -fsS --max-time 5 http://127.0.0.1:18080/ >/dev/null 2>&1 || true
+
+      - name: Collect debug data on failure
+        if: failure()
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+
+          mkdir -p deploy-logs
+
+          kubectl get all -n "$NAMESPACE" -o wide > deploy-logs/all-resources.txt || true
+          kubectl get events -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp > deploy-logs/events.txt || true
+          kubectl describe pods -n "$NAMESPACE" > deploy-logs/pods-describe.txt || true
+          helm history "$RELEASE_NAME" -n "$NAMESPACE" > deploy-logs/helm-history.txt || true
+          helm get values "$RELEASE_NAME" -n "$NAMESPACE" > deploy-logs/helm-values.txt || true
+          helm get manifest "$RELEASE_NAME" -n "$NAMESPACE" > deploy-logs/helm-manifest.yaml || true
+          kubectl logs deployment/docmost-docmost -n "$NAMESPACE" > deploy-logs/docmost.log || true
+          kubectl logs deployment/docmost-nginx -n "$NAMESPACE" > deploy-logs/nginx.log || true
+          kubectl logs statefulset/docmost-postgres -n "$NAMESPACE" > deploy-logs/postgres.log || true
+
+      - name: Upload debug logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-logs-${{ github.run_number }}
+          path: deploy-logs/
+          retention-days: 7
+
+      - name: Telegram notification
+        if: always()
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS="✅ Deploy successful"
+            RUN_LINK=""
+          else
+            STATUS="❌ Deploy failed"
+            RUN_LINK="🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "parse_mode=Markdown" \
+            --data-urlencode "text=${STATUS}
+
+          📦 Repository: \`${{ github.repository }}\`
+          🔀 Branch: \`${{ github.ref_name }}\`
+          🔗 Commit: \`${{ github.sha }}\`
+          👤 Author: \`${{ github.actor }}\`
+          ${RUN_LINK}"
+
+  cleanup:
+    name: Cleanup Old Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 5
