@@ -1,0 +1,2171 @@
+{
+"annotations": {
+"list": [
+      {
+"builtIn": 1,
+"datasource": {
+"type":"grafana",
+"uid":"-- Grafana --"
+        },
+"enable": true,
+"hide": true,
+"iconColor":"rgba(0, 211, 255, 1)",
+"name":"Annotations & Alerts",
+"type":"dashboard"
+      }
+    ]
+  },
+"description":"",
+"editable": true,
+"fiscalYearStartMonth": 0,
+"graphTooltip": 1,
+"liveNow": false,
+"panels": [
+    {
+"collapsed": false,
+"gridPos": {
+"h": 1,
+"w": 24,
+"x": 0,
+"y": 0
+      },
+"id": 35,
+"title":"Host Infrastructure",
+"type":"row"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"yellow",
+"value": 70
+              },
+              {
+"color":"red",
+"value": 90
+              }
+            ]
+          },
+"unit":"percent"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 6,
+"x": 0,
+"y": 1
+      },
+"id": 1,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\", job=\"node-exporter\"}[5m])) * 100)",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"CPU Usage",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"yellow",
+"value": 80
+              },
+              {
+"color":"red",
+"value": 95
+              }
+            ]
+          },
+"unit":"percent"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 6,
+"x": 6,
+"y": 1
+      },
+"id": 2,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"(1 - (node_memory_MemAvailable_bytes{job=\"node-exporter\"} / node_memory_MemTotal_bytes{job=\"node-exporter\"})) * 100",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"RAM Usage",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"yellow",
+"value": 80
+              },
+              {
+"color":"red",
+"value": 90
+              }
+            ]
+          },
+"unit":"percent"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 6,
+"x": 12,
+"y": 1
+      },
+"id": 3,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"100 - ((node_filesystem_avail_bytes{mountpoint=\"/tmp\", fstype!=\"\", job=\"node-exporter\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/tmp\", fstype!=\"\", job=\"node-exporter\"})",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Disk Usage (/)",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"blue",
+"value": 0
+              }
+            ]
+          },
+"unit":"s"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 6,
+"x": 18,
+"y": 1
+      },
+"id": 4,
+"options": {
+"colorMode":"value",
+"graphMode":"none",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"time() - node_boot_time_seconds{instance=~\"$instance\", job=\"node-exporter\"}",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"System Uptime",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 20,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          },
+"unit":"percent"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 0,
+"y": 9
+      },
+"id": 5,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"expr":"100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\", instance=~\"$instance\"}[5m])) * 100)",
+"legendFormat":"CPU Usage %",
+"refId":"A"
+        }
+      ],
+"title":"CPU Usage History",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 20,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          },
+"unit":"percent"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 12,
+"y": 9
+      },
+"id": 6,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"expr":"(1 - (node_memory_MemAvailable_bytes{instance=~\"$instance\"} / node_memory_MemTotal_bytes{instance=~\"$instance\"})) * 100",
+"legendFormat":"RAM Usage %",
+"refId":"A"
+        }
+      ],
+"title":"RAM Usage History",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 10,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 0,
+"y": 17
+      },
+"id": 7,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"expr":"node_load1{instance=~\"$instance\"}",
+"legendFormat":"Load 1m",
+"refId":"A"
+        },
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"expr":"node_load5{instance=~\"$instance\"}",
+"legendFormat":"Load 5m",
+"refId":"B"
+        },
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"expr":"node_load15{instance=~\"$instance\"}",
+"legendFormat":"Load 15m",
+"refId":"C"
+        }
+      ],
+"title":"System Load Average",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 20,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          },
+"unit":"bytes"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 12,
+"y": 17
+      },
+"id": 8,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"sum(kube_pod_container_resource_requests{resource=\"memory\"}) by (node)",
+"legendFormat":"{{name}}",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Scheduled Memory per Node",
+"type":"timeseries"
+    },
+    {
+"collapsed": false,
+"gridPos": {
+"h": 1,
+"w": 24,
+"x": 0,
+"y": 25
+      },
+"id": 36,
+"title":"Pods & Nodes",
+"type":"row"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 0,
+"y": 26
+      },
+"id": 32,
+"options": {
+"colorMode":"background",
+"graphMode":"none",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+          },
+"editorMode":"code",
+"expr":"sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Nodes Ready",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 6,
+"y": 26
+      },
+"id": 31,
+"options": {
+"displayMode":"lcd",
+"legend": {
+"calcs": [],
+"displayMode":"list",
+"placement":"bottom",
+"showLegend": false
+        },
+"maxVizHeight": 300,
+"minVizHeight": 16,
+"minVizWidth": 8,
+"namePlacement":"auto",
+"orientation":"horizontal",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showUnfilled": true,
+"sizing":"auto",
+"valueMode":"color"
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+          },
+"editorMode":"code",
+"expr":"sum by(namespace) (kube_pod_status_phase)",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Pods Per Namespace",
+"type":"bargauge"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 12,
+"y": 26
+      },
+"id": 33,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+          },
+"editorMode":"code",
+"expr":"avg(kube_pod_container_status_restarts_total)",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Avg Restarts per Pod",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"blue",
+"value": 0
+              }
+            ]
+          },
+"unit":"short"
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 18,
+"y": 26
+      },
+"id": 9,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"exemplar": false,
+"expr":"count(kube_pod_info{pod!=\"\"}) by (node)",
+"interval":"",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Pods by Node",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 20,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 9,
+"w": 12,
+"x": 0,
+"y": 32
+      },
+"id": 14,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": true,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+          },
+"editorMode":"code",
+"expr":"sum(kube_pod_container_status_restarts_total * on(pod) group_left(node) kube_pod_info{job=\"kube-state-metrics\"}) by (node)",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Pod Restarts by Node",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            }
+          }
+        }
+      },
+"gridPos": {
+"h": 9,
+"w": 12,
+"x": 12,
+"y": 32
+      },
+"id": 34,
+"options": {
+"displayLabels": [
+"percent"
+        ],
+"legend": {
+"displayMode":"list",
+"placement":"bottom",
+"showLegend": true
+        },
+"pieType":"pie",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"sort":"desc",
+"tooltip": {
+"hideZeros": false,
+"mode":"single",
+"sort":"none"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"sum(kube_pod_status_phase) by (phase)",
+"legendFormat":"__auto",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Pod Status Distribution",
+"type":"piechart"
+    },
+    {
+"collapsed": false,
+"gridPos": {
+"h": 1,
+"w": 24,
+"x": 0,
+"y": 41
+      },
+"id": 37,
+"title":"App Services (Nginx/Docmost)",
+"type":"row"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"mappings": [
+            {
+"options": {
+"0": {
+"color":"red",
+"index": 0,
+"text":"Down"
+                },
+"1": {
+"color":"green",
+"index": 1,
+"text":"Up"
+                }
+              },
+"type":"value"
+            }
+          ],
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"red",
+"value": 0
+              },
+              {
+"color":"green",
+"value": 1
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 0,
+"y": 42
+      },
+"id": 17,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"efo1gz4m6rksgd"
+          },
+"editorMode":"code",
+"expr":"count(kube_pod_container_status_running{container=~\".*docmost.*\"} == 1)",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Docmost Containers Running",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 6,
+"w": 6,
+"x": 6,
+"y": 42
+      },
+"id": 18,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"sum(nginx_connections_active) by (pod, namespace)",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Docmost Nginx Connections",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 9,
+"w": 12,
+"x": 12,
+"y": 42
+      },
+"id": 20,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"sum by(status, pod, namespace) (rate(nginx_http_requests_total[5m]))",
+"legendFormat":"{{status}}",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Nginx RPS by Status & Pod",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 20,
+"gradientMode":"opacity",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"smooth",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              }
+            ]
+          },
+"unit":"reqps"
+        }
+      },
+"gridPos": {
+"h": 9,
+"w": 12,
+"x": 0,
+"y": 48
+      },
+"id": 19,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"sum by(namespace) (rate(nginx_http_requests_total[5m]))",
+"legendFormat":"Total RPS",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"HTTP Requests Rate",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"thresholds"
+          },
+"mappings": [
+            {
+"options": {
+"0": {
+"color":"red",
+"index": 0,
+"text":"Fail"
+                },
+"1": {
+"color":"green",
+"index": 1,
+"text":"OK"
+                }
+              },
+"type":"value"
+            }
+          ],
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"red",
+"value": 0
+              },
+              {
+"color":"green",
+"value": 1
+              }
+            ]
+          }
+        }
+      },
+"gridPos": {
+"h": 15,
+"w": 12,
+"x": 12,
+"y": 51
+      },
+"id": 22,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"auto",
+"orientation":"auto",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"auto",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"probe_success{job=\"blackbox-http\", instance=~\".*docmost-docmost.*\"}",
+"range": true,
+"refId":"A"
+        }
+      ],
+"title":"Nginx Upstream Status",
+"type":"stat"
+    },
+    {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 10,
+"gradientMode":"none",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"linear",
+"lineWidth": 2,
+"pointSize": 4,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"never",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"yellow",
+"value": 1
+              },
+              {
+"color":"red",
+"value": 3
+              }
+            ]
+          },
+"unit":"s"
+        }
+      },
+"gridPos": {
+"h": 9,
+"w": 12,
+"x": 0,
+"y": 57
+      },
+"id": 21,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [
+"mean",
+"max"
+          ],
+"displayMode":"table",
+"placement":"right",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"desc"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"avg by(instance) (\n  probe_duration_seconds{job=\"blackbox-http\"}\n)",
+"legendFormat":"P50 Latency",
+"range": true,
+"refId":"A"
+        },
+        {
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+          },
+"editorMode":"code",
+"expr":"max by(instance) (\n  probe_duration_seconds{job=\"blackbox-http\"}\n)",
+"legendFormat":"P95 Latency",
+"range": true,
+"refId":"B"
+        }
+      ],
+"title":"Endpoint Latency (Blackbox)",
+"type":"timeseries"
+    },
+    {
+"collapsed": false,
+"gridPos": {
+"h": 1,
+"w": 24,
+"x": 0,
+"y": 66
+      },
+"id": 38,
+"title":"Logs & Errors (Loki)",
+"type":"row"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"fieldConfig": {
+"defaults": {
+"color": {
+"mode":"palette-classic"
+          },
+"custom": {
+"axisBorderShow": false,
+"axisCenteredZero": false,
+"axisColorMode":"text",
+"axisLabel":"",
+"axisPlacement":"auto",
+"barAlignment": 0,
+"barWidthFactor": 0.6,
+"drawStyle":"line",
+"fillOpacity": 0,
+"gradientMode":"none",
+"hideFrom": {
+"legend": false,
+"tooltip": false,
+"viz": false
+            },
+"insertNulls": false,
+"lineInterpolation":"linear",
+"lineWidth": 1,
+"pointSize": 5,
+"scaleDistribution": {
+"type":"linear"
+            },
+"showPoints":"auto",
+"showValues": false,
+"spanNulls": false,
+"stacking": {
+"group":"A",
+"mode":"none"
+            },
+"thresholdsStyle": {
+"mode":"off"
+            }
+          },
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          },
+"unit":"short"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 0,
+"y": 67
+      },
+"id": 23,
+"options": {
+"annotations": {
+"clustering": -1,
+"multiLane": false
+        },
+"legend": {
+"calcs": [],
+"displayMode":"table",
+"placement":"bottom",
+"showLegend": true
+        },
+"tooltip": {
+"hideZeros": false,
+"mode":"multi",
+"sort":"none"
+        }
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"sum by (filename) (\n  count_over_time({filename=~\".+\"}[5m])\n)",
+"legendFormat":"{{container}}",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Log Volume by Service",
+"type":"timeseries"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"gridPos": {
+"h": 8,
+"w": 12,
+"x": 12,
+"y": 67
+      },
+"id": 24,
+"options": {
+"dedupStrategy":"none",
+"enableInfiniteScrolling": false,
+"enableLogDetails": true,
+"prettifyLogMessage": true,
+"showControls": false,
+"showFieldSelector": false,
+"showLevel": true,
+"showTime": false,
+"sortOrder":"Descending",
+"timestampResolution":"ms",
+"unwrappedColumns": false,
+"wrapLogMessage": false
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"{filename=~\".+\"} \n|~ \"(?i)(error|warn|warning|exception|failed|denied|timeout|panic|fatal|502|503|504)\"",
+"legendFormat":"{{container}}",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Errors & Warnings Rate",
+"type":"logs"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"gridPos": {
+"h": 10,
+"w": 24,
+"x": 0,
+"y": 75
+      },
+"id": 25,
+"options": {
+"dedupStrategy":"none",
+"enableInfiniteScrolling": false,
+"enableLogDetails": true,
+"prettifyLogMessage": true,
+"showCommonLabels": false,
+"showControls": false,
+"showFieldSelector": false,
+"showLabels": true,
+"showLevel": true,
+"showTime": true,
+"sortOrder":"Descending",
+"timestampResolution":"ms",
+"unwrappedColumns": false,
+"wrapLogMessage": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"{filename=~\".*nginx.*\"} |= \"GET\"",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Nginx Access Logs",
+"type":"logs"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"gridPos": {
+"h": 10,
+"w": 24,
+"x": 0,
+"y": 85
+      },
+"id": 26,
+"options": {
+"dedupStrategy":"none",
+"enableInfiniteScrolling": false,
+"enableLogDetails": true,
+"prettifyLogMessage": true,
+"showCommonLabels": false,
+"showControls": false,
+"showFieldSelector": false,
+"showLabels": true,
+"showLevel": true,
+"showTime": true,
+"sortOrder":"Descending",
+"timestampResolution":"ms",
+"unwrappedColumns": false,
+"wrapLogMessage": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"{filename=~\".*docmost.*\"}",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Docmost Application Logs",
+"type":"logs"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"gridPos": {
+"h": 8,
+"w": 18,
+"x": 0,
+"y": 95
+      },
+"id": 30,
+"options": {
+"dedupStrategy":"none",
+"enableInfiniteScrolling": false,
+"enableLogDetails": true,
+"prettifyLogMessage": true,
+"showCommonLabels": true,
+"showControls": false,
+"showFieldSelector": false,
+"showLabels": true,
+"showLevel": true,
+"showTime": true,
+"sortOrder":"Descending",
+"timestampResolution":"ms",
+"unwrappedColumns": false,
+"wrapLogMessage": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"{filename=~\".+\"} |~ \"(?i)critical|fatal|panic|error\"",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Recent Critical Logs",
+"type":"logs"
+    },
+    {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+      },
+"fieldConfig": {
+"defaults": {
+"thresholds": {
+"mode":"absolute",
+"steps": [
+              {
+"color":"green",
+"value": 0
+              },
+              {
+"color":"red",
+"value": 80
+              }
+            ]
+          },
+"unit":"short"
+        }
+      },
+"gridPos": {
+"h": 8,
+"w": 6,
+"x": 18,
+"y": 95
+      },
+"id": 29,
+"options": {
+"colorMode":"value",
+"graphMode":"area",
+"justifyMode":"center",
+"orientation":"horizontal",
+"percentChangeColorMode":"standard",
+"reduceOptions": {
+"calcs": [
+"lastNotNull"
+          ],
+"fields":"",
+"values": false
+        },
+"showPercentChange": false,
+"textMode":"value",
+"wideLayout": true
+      },
+"pluginVersion":"13.0.1",
+"targets": [
+        {
+"datasource": {
+"type":"loki",
+"uid":"loki"
+          },
+"direction":"backward",
+"editorMode":"code",
+"expr":"sum(\n  rate({filename=~\".+\"}[1m])\n)",
+"queryType":"range",
+"refId":"A"
+        }
+      ],
+"title":"Total Logs/sec",
+"type":"stat"
+    }
+  ],
+"preload": false,
+"refresh":"5s",
+"schemaVersion": 42,
+"templating": {
+"list": [
+      {
+"allowCustomValue": true,
+"current": {
+"text":"prometheus",
+"value":"efo1gz4m6rksgd"
+        },
+"hide": 0,
+"includeAll": false,
+"label":"Prometheus Datasource",
+"multi": false,
+"name":"DS_PROMETHEUS",
+"options": [],
+"query":"prometheus",
+"refresh": 1,
+"regex":"",
+"skipUrlSync": false,
+"type":"datasource"
+      },
+      {
+"allowCustomValue": true,
+"current": {
+"text":"All",
+"value":"$__all"
+        },
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+        },
+"definition":"label_values(up, instance)",
+"hide": 0,
+"includeAll": true,
+"label":"Host Instance",
+"multi": true,
+"name":"instance",
+"options": [],
+"query": {
+"query":"label_values(up, instance)",
+"refId":"StandardVariableQuery"
+        },
+"refresh": 2,
+"regex":"",
+"regexApplyTo":"value",
+"skipUrlSync": false,
+"sort": 0,
+"type":"query"
+      },
+      {
+"allowCustomValue": true,
+"current": {
+"text":"All",
+"value":"$__all"
+        },
+"datasource": {
+"type":"prometheus",
+"uid":"${DS_PROMETHEUS}"
+        },
+"definition":"label_values(container_cpu_usage_seconds_total, name)",
+"hide": 0,
+"includeAll": true,
+"label":"Container",
+"multi": true,
+"name":"container",
+"options": [],
+"query": {
+"query":"label_values(container_cpu_usage_seconds_total, name)",
+"refId":"StandardVariableQuery"
+        },
+"refresh": 2,
+"regex":"",
+"regexApplyTo":"value",
+"skipUrlSync": false,
+"sort": 0,
+"type":"query"
+      }
+    ]
+  },
+"time": {
+"from":"now-1h",
+"to":"now"
+  },
+"timepicker": {
+"refresh_intervals": [
+"5s",
+"10s",
+"30s",
+"1m",
+"5m",
+"15m",
+"30m",
+"1h",
+"2h",
+"1d"
+    ]
+  },
+"timezone":"browser",
+"title":"Full Infrastructure Monitoring Copy",
+"version": 1,
+"uid":"adbt77r",
+"id": 4087699951173632
+}

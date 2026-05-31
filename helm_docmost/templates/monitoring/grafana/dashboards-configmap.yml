@@ -1,0 +1,13 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "docmost.name" . }}-grafana-dashboards
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "docmost.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+data:
+  infrastructure-dashboard.json: |
+{{ .Files.Get "dashboards/infrastructure-dashboard.json" | nindent 4 }}
+{{- end }}

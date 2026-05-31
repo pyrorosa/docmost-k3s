@@ -24,67 +24,86 @@ spec:
         runAsUser: 472
         runAsGroup: 472
         fsGroup: 472
+
       containers:
-      - name: grafana
-        image: "{{ .Values.monitoring.grafana.image.repository }}:{{ .Values.monitoring.grafana.image.tag }}"
-        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
-        ports:
-        - containerPort: 3000
-          name: web
-        env:
-        - name: GF_SECURITY_ADMIN_USER
-          value: "admin"
-        - name: GF_SECURITY_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "docmost.name" . }}-grafana-admin-secret
-              key: admin-password
-        - name: GF_USERS_ALLOW_SIGN_UP
-          value: "false"
-        volumeMounts:
-        - name: grafana-data
-          mountPath: /var/lib/grafana
-        - name: grafana-provisioning
-          mountPath: /etc/grafana/provisioning
-          readOnly: true
-        - name: grafana-dashboards
-          mountPath: /etc/grafana/provisioning/dashboards
-          readOnly: true
-        - name: tmp
-          mountPath: /tmp
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        resources:
-          {{- toYaml .Values.monitoring.grafana.resources | nindent 10 }}
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 472
-          runAsGroup: 472
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
+        - name: grafana
+          image: "{{ .Values.monitoring.grafana.image.repository }}:{{ .Values.monitoring.grafana.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+
+          ports:
+            - containerPort: 3000
+              name: web
+
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
+
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "docmost.name" . }}-grafana-admin-secret
+                  key: admin-password
+
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+
+            - name: grafana-provisioning
+              mountPath: /etc/grafana/provisioning
+              readOnly: true
+
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+              readOnly: true
+
+            - name: tmp
+              mountPath: /tmp
+
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          resources:
+            {{- toYaml .Values.monitoring.grafana.resources | nindent 12 }}
+
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 472
+            runAsGroup: 472
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
       volumes:
-      - name: grafana-data
-        persistentVolumeClaim:
-          claimName: {{ include "docmost.name" . }}-grafana-data
-      - name: grafana-provisioning
-        configMap:
-          name: {{ include "docmost.name" . }}-grafana-provisioning
-      - name: grafana-dashboards
-        configMap:
-          name: {{ include "docmost.name" . }}-grafana-dashboards
-      - name: tmp
-        emptyDir: {}
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: {{ include "docmost.name" . }}-grafana-data
+
+        - name: grafana-provisioning
+          configMap:
+            name: {{ include "docmost.name" . }}-grafana-provisioning
+
+        - name: grafana-dashboards
+          configMap:
+            name: {{ include "docmost.name" . }}-grafana-dashboards
+
+        - name: tmp
+          emptyDir: {}
+
       restartPolicy: Always
 {{- end }}
