@@ -179,8 +179,8 @@ monitoring:
         memory: "256Mi"
         cpu: "200m"
     telegram:
-      botToken: "8272873030:AAErXez0Y2Yw4n_NykTOT8rbJHwnYCYsv_k"
-      chatId: "1168742163"
+      botToken: ""
+      chatId: ""
   nodeExporter:
     enabled: true
     image:
